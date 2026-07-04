@@ -58,7 +58,20 @@ Screenshot of git log --oneline:
 
 ## Root Cause Analysis
 
+<!---
+For each of the 3+ bugs you fix, write an entry in your submission doc with all five of these fields:
 
+1. Issue number and title
+2. How you reproduced it — What steps did you take to confirm the bug exists before touching any code? What inputs, sequence of actions, or data condition triggered the behavior?
+3. How you found the root cause — Which files did you look at? What was your navigation path? What moment made you confident you'd found the right place — not just a suspicious area, but the specific cause?
+4. The root cause — In plain English, explain exactly what was wrong. Not "there was a bug in the streak logic" — explain the specific condition, comparison, or missing step that caused the problem.
+5. Your fix and side-effect check — What did you change and why does that change fix the root cause? What related functionality did you check afterward to confirm you didn't break anything?--->
+
+| Issue Number & Title | How you reproduced it | How you found the root cause | The Root Cause | Your Fix & Side-Effect Check |
+|----------------------|-----------------------|------------------------------|-----------------|-------------------------------|
+| 1. My listening streak keeps resetting | I ran the automated test suite specifically targeting the streak logic using pytest tests/test_streaks.py. The test suite sets up a mock user and simulates consecutive listening events across a weekend boundary: first on Saturday, June 15, 2024 (weekday() == 5), and next on Sunday, June 16, 2024 (weekday() == 6). The expected behavior is that the user's listening_streak increments to 2, but the test fails with an AssertionError: assert 1 == 2, proving that the streak incorrectly resets back to 1 on Sunday. | I looked at the services/streak_services.py and added temporary print statements in the conditional statements in update_listening_streak function. When I ran the pytests again with these print statements, I found the logs revealed that on Sunday (weekday() == 6), the code skipped the expected increment logic and fell into a block designed to reset or incorrectly handle the week boundary, which made me 100% confident I had found the exact root cause here, a flawed day-of-week boundary comparison. | At line 73 in services/streak_service.py, it had the elif statement: `elif days_since_last == 1 and today.weekday() != 6:`. This showed that it increments the streak only if yesterday was the last listened day and today is not Sunday. The last test in tests/test_streaks.py failed because Saturday to Sunday should count as consecutive, but the code reset the streak instead. | I removed `and today.weekday() != 6` from the elif statement. This change fixed the root cause because it follows the streak rule that is based on consecutive calendar days, not weekdays only. Any listen exactly one day after the previous listen increments the streak. I ran the streak pytests again and it showed that all related streak behavior tests passed. |
+|  |  |  |  |  |
+|  |  |  |  |  |
 
 ---
 
