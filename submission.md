@@ -1,7 +1,7 @@
 # ai201-project5-mixtape-starter - submission.md
 
 Screenshot of git log --oneline:
-
+![alt_text](Git_Log_Oneline.png)
 
 ---
 
