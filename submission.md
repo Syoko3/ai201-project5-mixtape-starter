@@ -7,9 +7,9 @@ Screenshot of git log --oneline:
 
 ## AI Usage
 
-- *How you used AI tools during codebase navigation and debugging:* 
-- *What they helped you understand:* 
-- *Where you verified or overrode their output:* 
+- *How you used AI tools during codebase navigation and debugging:* I reviewed the files specified in the 'affected services' section of the five open issues, walking through the code to identify which functions were causing the bugs. Then, I used AI tools to explain and trace these functions. For the second bug, I asked why I cannot see the bug and how to add temporary print statements to inspect the output and verify the root cause. Once the issues were confirmed, I prompted the AI to generate a fix and explain the rationale behind its implementation.
+- *What they helped you understand:* They helped me understand the flow of the function and the bug where it happened. After testing the functions, they fixed the bugs and explained why they fixed the bug in that way.
+- *Where you verified or overrode their output:* I verified their output by running the pytests from tests/ folder. I did not overrode their output, but I added the temporary print statements again to see the output is fixed.
 
 ---
 
@@ -34,22 +34,18 @@ Screenshot of git log --oneline:
 **Data flow example: adding a song to a playlist triggers a notification**
 
 1. A client sends POST /playlists/<playlist_id>/songs with song_id and added_by.
-2. routes/playlists.py runs the add_song(playlist_id) route.
-3. The route validates that song_id and added_by were provided.
-4. The route calls add_to_playlist(playlist_id, song_id, added_by) from services/notification_service.py.
-5. add_to_playlist() looks up the Song, the user who added it, and the Playlist.
-6. If the song is not already in the playlist, it appends the song to playlist.songs and commits the database change.
-7. If the person adding the song is not the original sharer, add_to_playlist() calls create_notification().
-8. create_notification() creates a Notification row for the original song sharer and commits it.
-9. Later, when the user visits GET /users/<user_id>/notifications, routes/users.py calls get_notifications() from services/notification_service.py.
-10. get_notifications() queries the user's notifications, orders them newest first, converts them to dictionaries, and returns them to the route.
+2. routes/playlists.py runs the add_song(playlist_id) route, and validates that song_id and added_by were provided.
+3. The route calls add_to_playlist(playlist_id, song_id, added_by) from services/notification_service.py to look up the Song, the user who added it, and the Playlist.
+4. If the song is not already in the playlist, it appends the song to playlist.songs and commits the database change.
+5. If the person adding the song is not the original sharer, add_to_playlist() calls create_notification(), which creates a Notification row for the original song sharer and commits it.
+6. Later, when the user visits GET /users/<user_id>/notifications, routes/users.py calls get_notifications() from services/notification_service.py, which queries the user's notifications, orders them newest first, converts them to dictionaries, and returns them to the route.
 
 **Organization Patterns:**
 
-- Routes are thin controller layers. They read request data, validate required fields, call service functions, and turn results or errors into JSON responses.
-- Services contain most of the app logic. They query models, enforce feature rules, update records, and commit database changes.
+- Routes read request data, validate required fields, call service functions, and turn results or errors into JSON responses.
+- Services contain most of the app logic for querying models, enforcing feature rules, updating records, and commiting database changes.
 - Models define both tables and serialization through to_dict() methods.
-- Errors are usually raised as ValueError in the service layer and caught in the route layer.
+- Errors are raised as ValueError in the service layer and caught in the route layer.
 - The app is organized by feature area: songs, playlists, users, feed, search, streaks, and notifications.
 - Database access is done through the shared db object from app.py.
 - Many features are connected through shared models. For example, ListeningEvent powers the feed and streaks, while Song, Playlist, and Notification connect playlist activity to user notifications.
@@ -58,14 +54,13 @@ Screenshot of git log --oneline:
 
 ## Root Cause Analysis
 
-<!---
-For each of the 3+ bugs you fix, write an entry in your submission doc with all five of these fields:
+<!--- For each of the 3+ bugs you fix, write an entry in your submission doc with all five of these fields:
 
 1. Issue number and title
 2. How you reproduced it — What steps did you take to confirm the bug exists before touching any code? What inputs, sequence of actions, or data condition triggered the behavior?
 3. How you found the root cause — Which files did you look at? What was your navigation path? What moment made you confident you'd found the right place — not just a suspicious area, but the specific cause?
 4. The root cause — In plain English, explain exactly what was wrong. Not "there was a bug in the streak logic" — explain the specific condition, comparison, or missing step that caused the problem.
-5. Your fix and side-effect check — What did you change and why does that change fix the root cause? What related functionality did you check afterward to confirm you didn't break anything?--->
+5. Your fix and side-effect check — What did you change and why does that change fix the root cause? What related functionality did you check afterward to confirm you didn't break anything? --->
 
 | Issue Number & Title | How you reproduced it | How you found the root cause | The Root Cause | Your Fix & Side-Effect Check |
 |----------------------|-----------------------|------------------------------|-----------------|-------------------------------|
